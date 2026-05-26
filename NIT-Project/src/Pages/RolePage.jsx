@@ -3,10 +3,10 @@ import { request } from "../util/request";
 import { Space, Table, Button, Modal, Form, Input, Select } from "antd"; // ✅ removed unused imports
 
 function RolePage() {
-    const [list, setList]         = useState([]);
-    const [open, setOpen]         = useState(false);
+    const [list, setList] = useState([]);
+    const [open, setOpen] = useState(false);
     const [editData, setEditData] = useState(null); // ✅ track edit vs create
-    const [formRef]               = Form.useForm();
+    const [formRef] = Form.useForm();
 
     const fetchRole = async () => {
         const res = await request("roles", "GET");
@@ -28,9 +28,9 @@ function RolePage() {
     const handleOpenEdit = (record) => {
         setEditData(record);
         formRef.setFieldsValue({
-            name:        record.name,
+            name: record.name,
             description: record.description,
-            status:      record.status,
+            status: record.status,
         });
         setOpen(true);
     };
@@ -55,9 +55,9 @@ function RolePage() {
     // ✅ Single onFinish handles both POST (create) and PUT (update)
     const onFinish = async (item) => {
         const data = {
-            name:        item.name,
+            name: item.name,
             description: item.description,
-            status:      item.status,
+            status: item.status,
         };
 
         if (editData) {
@@ -83,10 +83,12 @@ function RolePage() {
 
     return (
         <div>
-            <h1>List Role: {list.length}</h1>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h1>List Role: {list.length}</h1>
 
-            {/* ✅ Fixed button name */}
-            <Button type="primary" onClick={handleOpenCreate}>Add Role</Button>
+                {/* ✅ Fixed button name */}
+                <Button type="primary" onClick={handleOpenCreate}>Add Role</Button>
+            </div>
 
             {/* ✅ One modal handles both Create and Edit */}
             <Modal
@@ -120,7 +122,7 @@ function RolePage() {
                         <Select
                             placeholder="Select status"
                             options={[
-                                { label: "Active",   value: 1 },
+                                { label: "Active", value: 1 },
                                 { label: "Inactive", value: 0 },
                             ]}
                         />
@@ -164,7 +166,7 @@ function RolePage() {
                         render: (text) =>
                             text === 1
                                 ? <Button color="green" variant="outlined" shape="round">Active</Button>
-                                : <Button color="red"   variant="outlined" shape="round">Inactive</Button>
+                                : <Button color="red" variant="outlined" shape="round">Inactive</Button>
                     },
                     {
                         title: "Action",
