@@ -5,6 +5,8 @@ import {
     PieChartOutlined,
     BranchesOutlined,
     ProductOutlined,
+    ShopOutlined,
+    AppstoreAddOutlined,
 } from '@ant-design/icons';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import { Outlet, useNavigate } from 'react-router-dom';
@@ -17,18 +19,11 @@ function getItem(label, key, icon, children) {
 
 const items = [
     getItem('Dashboard',        '/',         <PieChartOutlined />),
-    getItem('Home',             '/home',     <DesktopOutlined />),
-    getItem('Product',          '/product',  <ProductOutlined />, [
-        getItem('Coca Cola',  '/cocacola'),  // ✅ real labels
-        getItem('Champagne',  '/champain'),
-        getItem('Sting',      '/sting'),
-    ]),
-    getItem('Brand',            '/brand',    <BranchesOutlined />, [
-        getItem('Brand A',    '/brand/a'),   // ✅ proper route paths
-        getItem('Brand B',    '/brand/b'),
-    ]),
+    getItem('Product',          '/product',  <ProductOutlined />),
+    getItem('Category',         '/category', <ShopOutlined />),
+    getItem('Brand',            '/brand',    <BranchesOutlined />),
+    getItem('Role Management',  '/role',     <AppstoreAddOutlined />),
     getItem('Setting',          '/setting',  <SettingOutlined />),
-    getItem('Role Management',  '/role',     <SettingOutlined />), // ✅ clean label
 ];
 
 const MainLayout = () => {

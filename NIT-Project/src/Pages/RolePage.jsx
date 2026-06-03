@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { request } from "../util/request";
-import { Space, Table, Button, Modal, Form, Input, Select } from "antd"; // ✅ removed unused imports
+import { Modal } from "antd";
+import { Space, Table, Button, Form, Input, Select } from "antd"; // ✅ removed unused imports
 
 function RolePage() {
     const [list, setList] = useState([]);
     const [open, setOpen] = useState(false);
     const [editData, setEditData] = useState(null); // ✅ track edit vs create
     const [formRef] = Form.useForm();
-
     const fetchRole = async () => {
         const res = await request("roles", "GET");
         setList(res.list);
@@ -84,7 +84,7 @@ function RolePage() {
     return (
         <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h1>List Role: {list.length}</h1>
+                <h4>List Role: <span style={{color:"green", fontSize: 20}}>{list.length}</span></h4>
 
                 {/* ✅ Fixed button name */}
                 <Button type="primary" onClick={handleOpenCreate}>Add Role</Button>
