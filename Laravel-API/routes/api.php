@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,8 @@ Route::post("/roles",       [RoleController::class, "store"]);
 Route::put("/roles/{id}",   [RoleController::class, "update"]);
 Route::delete("/roles/{id}",[RoleController::class, "destroy"]);
 
+Route::apiResource("categories", CategoryController::class);
+Route::apiResource("brands", BrandController::class);
 // Test routes (remove in production)
 Route::get('/products', function () {
     $products = [
