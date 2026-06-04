@@ -14,7 +14,7 @@ function RolePage() {
     };
 
     useEffect(() => {
-        fetchRole();
+        fetchRole().catch(console.error);
     }, []);
 
     // ✅ Open modal for CREATE
@@ -46,7 +46,7 @@ function RolePage() {
     const handleDelete = async (record) => {
         const res = await request("roles/" + record.id, "DELETE");
         if (res.success) {
-            fetchRole(); // ✅ removed alert() — just refresh
+            fetchRole().catch(console.error); // ✅ removed alert() — just refresh
         } else {
             alert(res.message || "Delete failed.");
         }
@@ -65,7 +65,7 @@ function RolePage() {
             const res = await request("roles/" + editData.id, "PUT", data);
             if (res.success) {
                 handleCloseModal();
-                fetchRole();
+                fetchRole().catch(console.error);
             } else {
                 alert("Update failed.");
             }
@@ -74,7 +74,7 @@ function RolePage() {
             const res = await request("roles", "POST", data);
             if (res.success) {
                 handleCloseModal();
-                fetchRole();
+                fetchRole().catch(console.error);
             } else {
                 alert("Create failed.");
             }

@@ -54,7 +54,6 @@ const MainLayout = () => {
                 <Content style={{ margin: '0 16px' }}>
                     <Breadcrumb
                         style={{ margin: '16px 0' }}
-                        items={[{ title: 'User' }, { title: 'HUN SOKHENG' }]}
                     />
                     <div style={{
                         padding: 24,
