@@ -1,8 +1,10 @@
-const BrandPage = () => {
+import { useState } from "react";
+
+function BrandPage() {
+    const [test, setTest] = useState("")
     return(
-        <div>
-            <h1 style={{color:"green"}}>Brand Page</h1>
-        </div>
+        <h1 style={{color:"green"}}>Dashboard Component</h1>
     );
 }
+
 export default BrandPage;
