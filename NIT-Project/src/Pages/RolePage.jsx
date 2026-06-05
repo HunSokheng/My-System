@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
 import { request } from "../util/request";
-import { Space, Table, Button, Modal, Form, Input, Select } from "antd"; // ✅ removed unused imports
+import {message, Modal, Spin, Tag} from "antd";
+import { Space, Table, Button, Form, Input, Select } from "antd"; // ✅ removed unused imports
 
 function RolePage() {
-    const [list, setList]         = useState([]);
-    const [open, setOpen]         = useState(false);
-    const [editData, setEditData] = useState(null); // ✅ track edit vs create
-    const [formRef]               = Form.useForm();
+    const [list, setList] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [editData, setEditData] = useState({}); // ✅ track edit vs create
+    const [formRef] = Form.useForm();
+    const [loading, setLoading] = useState(false);
 
     const fetchRole = async () => {
-        const res = await request("roles", "GET");
-        setList(res.list);
+        setLoading(true);
+        try {
+            const res = await request("roles", "GET");
+            if (res.list) setList(res.list);
+        } finally {
+            setLoading(false);                    // ✅ always runs
+        }
     };
 
     useEffect(() => {
-        fetchRole();
+        fetchRole().catch(console.error);
     }, []);
 
     // ✅ Open modal for CREATE
@@ -28,9 +35,9 @@ function RolePage() {
     const handleOpenEdit = (record) => {
         setEditData(record);
         formRef.setFieldsValue({
-            name:        record.name,
+            name: record.name,
             description: record.description,
-            status:      record.status,
+            status: record.status,
         });
         setOpen(true);
     };
@@ -46,7 +53,7 @@ function RolePage() {
     const handleDelete = async (record) => {
         const res = await request("roles/" + record.id, "DELETE");
         if (res.success) {
-            fetchRole(); // ✅ removed alert() — just refresh
+            fetchRole().catch(console.error); // ✅ removed alert() — just refresh
         } else {
             alert(res.message || "Delete failed.");
         }
@@ -55,17 +62,18 @@ function RolePage() {
     // ✅ Single onFinish handles both POST (create) and PUT (update)
     const onFinish = async (item) => {
         const data = {
-            name:        item.name,
+            name: item.name,
             description: item.description,
-            status:      item.status,
+            status: item.status,
         };
 
         if (editData) {
             // ✅ EDIT — PUT
             const res = await request("roles/" + editData.id, "PUT", data);
             if (res.success) {
+                message.success(res.message);
                 handleCloseModal();
-                fetchRole();
+                fetchRole().catch(console.error);
             } else {
                 alert("Update failed.");
             }
@@ -74,7 +82,7 @@ function RolePage() {
             const res = await request("roles", "POST", data);
             if (res.success) {
                 handleCloseModal();
-                fetchRole();
+                fetchRole().catch(console.error);
             } else {
                 alert("Create failed.");
             }
@@ -83,102 +91,105 @@ function RolePage() {
 
     return (
         <div>
-            <h1>List Role: {list.length}</h1>
+            <Spin spinning={loading}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h4>List Role: <span style={{color:"green", fontSize: 20}}>{list.length}</span></h4>
 
-            {/* ✅ Fixed button name */}
-            <Button type="primary" onClick={handleOpenCreate}>Add Role</Button>
+                    {/* ✅ Fixed button name */}
+                    <Button type="primary" onClick={handleOpenCreate}>Add Role</Button>
+                </div>
 
-            {/* ✅ One modal handles both Create and Edit */}
-            <Modal
-                open={open}
-                title={editData ? "Edit Role" : "Add New Role"} // ✅ dynamic title
-                onCancel={handleCloseModal}
-                footer={null}
-            >
-                <Form form={formRef} layout="vertical" style={{ marginTop: 16 }} onFinish={onFinish}>
-                    <Form.Item
-                        name="name"
-                        label="Role Name"
-                        rules={[{ required: true, message: "Please enter role name!" }]}
-                    >
-                        <Input placeholder="Enter role name" />
-                    </Form.Item>
+                {/* ✅ One modal handles both Create and Edit */}
+                <Modal
+                    open={open}
+                    title={editData ? "Edit Role" : "Add New Role"} // ✅ dynamic title
+                    onCancel={handleCloseModal}
+                    footer={null}
+                >
+                    <Form form={formRef} layout="vertical" style={{ marginTop: 16 }} onFinish={onFinish}>
+                        <Form.Item
+                            name="name"
+                            label="Role Name"
+                            rules={[{ required: true, message: "Please enter role name!" }]}
+                        >
+                            <Input placeholder="Enter role name" />
+                        </Form.Item>
 
-                    <Form.Item
-                        name="description"
-                        label="Description"
-                        rules={[{ required: true, message: "Please enter description!" }]}
-                    >
-                        <Input.TextArea rows={3} placeholder="Enter description" />
-                    </Form.Item>
+                        <Form.Item
+                            name="description"
+                            label="Description"
+                            rules={[{ required: true, message: "Please enter description!" }]}
+                        >
+                            <Input.TextArea rows={3} placeholder="Enter description" />
+                        </Form.Item>
 
-                    <Form.Item
-                        name="status"
-                        label="Status"
-                        rules={[{ required: true, message: "Please select status!" }]}
-                    >
-                        <Select
-                            placeholder="Select status"
-                            options={[
-                                { label: "Active",   value: 1 },
-                                { label: "Inactive", value: 0 },
-                            ]}
-                        />
-                    </Form.Item>
+                        <Form.Item
+                            name="status"
+                            label="Status"
+                            rules={[{ required: true, message: "Please select status!" }]}
+                        >
+                            <Select
+                                placeholder="Select status"
+                                options={[
+                                    { label: "Active", value: 1 },
+                                    { label: "Inactive", value: 0 },
+                                ]}
+                            />
+                        </Form.Item>
 
-                    <div style={{ textAlign: "right", marginTop: 20 }}>
-                        <Space>
-                            <Button type="primary" danger onClick={handleCloseModal}>Cancel</Button>
-                            <Button type="primary" htmlType="submit">
-                                {editData ? "Update" : "Save"} {/* ✅ dynamic button label */}
-                            </Button>
-                        </Space>
-                    </div>
-                </Form>
-            </Modal>
-
-            <Table
-                style={{ marginTop: 20 }}
-                dataSource={list}
-                rowKey="id"
-                columns={[
-                    {
-                        title: "No",
-                        key: "no",
-                        render: (_, __, index) => index + 1 // ✅ fixed param name (was "request")
-                    },
-                    {
-                        title: "Name",
-                        dataIndex: "name",
-                        key: "name",
-                    },
-                    {
-                        title: "Description",
-                        dataIndex: "description",
-                        key: "description",
-                    },
-                    {
-                        title: "Status",
-                        dataIndex: "status",
-                        key: "status",
-                        render: (text) =>
-                            text === 1
-                                ? <Button color="green" variant="outlined" shape="round">Active</Button>
-                                : <Button color="red"   variant="outlined" shape="round">Inactive</Button>
-                    },
-                    {
-                        title: "Action",
-                        key: "action", // ✅ fixed key (was "center " with space)
-                        render: (_, record) => ( // ✅ removed unused params
+                        <div style={{ textAlign: "right", marginTop: 20 }}>
                             <Space>
-                                {/* ✅ Edit button now works */}
-                                <Button type="primary" onClick={() => handleOpenEdit(record)}>Edit</Button>
-                                <Button type="primary" danger onClick={() => handleDelete(record)}>Delete</Button>
+                                <Button type="primary" danger onClick={handleCloseModal}>Cancel</Button>
+                                <Button type="primary" htmlType="submit">
+                                    {editData?.id ? "Update" : "Save"} {/* ✅ dynamic button label */}
+                                </Button>
                             </Space>
-                        )
-                    }
-                ]}
-            />
+                        </div>
+                    </Form>
+                </Modal>
+
+                <Table
+                    style={{ marginTop: 20 }}
+                    rowKey={record => record.id}
+                    dataSource={list}
+                    columns={[
+                        {
+                            title: "No",
+                            key: "no",
+                            render: (text, record, index) => index + 1 // ✅ fixed param name (was "request")
+                        },
+                        {
+                            title: "Name",
+                            dataIndex: "name",
+                            key: "name",
+                        },
+                        {
+                            title: "Description",
+                            dataIndex: "description",
+                            key: "description",
+                        },
+                        {
+                            title: "Status",
+                            dataIndex: "status",
+                            key: "status",
+                            render: (text) => ( text === 1 ? <Tag color={"green"}>Active</Tag> : <Tag color={"red"}>Inactive</Tag>),
+                        },
+                        {
+                            title: "Action",
+                            dataIndex: "actions",
+                            key: "action", // ✅ fixed key (was "center " with space)
+                            align: "center",
+                            render: (text, record) => ( // ✅ removed unused params
+                                <Space>
+                                    {/* ✅ Edit button now works */}
+                                    <Button type="primary" onClick={() => handleOpenEdit(record)}>Edit</Button>
+                                    <Button type="primary" danger onClick={() => handleDelete(record)}>Delete</Button>
+                                </Space>
+                            )
+                        }
+                    ]}
+                />
+            </Spin>
         </div>
     );
 }
