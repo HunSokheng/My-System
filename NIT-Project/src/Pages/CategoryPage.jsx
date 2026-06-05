@@ -1,4 +1,4 @@
-import {Button, Form, Input, Modal, Select, Space, Spin, Table, Tag} from "antd";
+import {Button, Form, Input, Modal, Select, Space, Spin, Table, Tag, message} from "antd";
 import { useEffect, useState } from "react";
 import { request } from "../util/request";
 
@@ -7,7 +7,9 @@ function CategoryPage() {
     const [loading, setLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
     const [formRef] = Form.useForm();
-    const [editData, setEditData] = useState(null);
+    const [editData, setEditData] = useState({});
+
+
     const fetchListCategory = async () => {       // ✅ moved above useEffect
         setLoading(true);
         try {
@@ -22,8 +24,16 @@ function CategoryPage() {
         fetchListCategory().catch(console.error);
     }, []);
 
-    const handleBtnEdit = () => {
-        console.log();
+    const handleBtnEdit = (record) => {
+        setEditData(record);
+        formRef.setFieldsValue({
+            id: record.id,
+            name: record.name,
+            code: record.code,
+            description: record.description,
+            status: record.status,
+        });
+        setOpenModal(true);
     };        // ✅ accepts record
 
     const handleBtnDelete = () => {
@@ -36,15 +46,40 @@ function CategoryPage() {
 
     const ShowModalPopup = () => {
         setOpenModal(true);
-    }
+    };
+
     const CloseModalPopup = () => {
         setOpenModal(false);
+        setEditData({});
         formRef.resetFields();
-    }
+    };
 
-    const OnFinish = (value) => {
-        console.log(value);
-    }
+    const onFinish = async (values) => {
+        const data = {
+            id: editData?.id,          // ✅ from state, not form
+            name: values.name,
+            code: values.code,
+            description: values.description,
+            status: values.status,
+        };
+
+        const method = editData?.id ? "PUT" : "POST";
+        const url = editData?.id ? `categories/${editData.id}` : "categories";
+
+        setLoading(true);
+        try {
+            const res = await request(url, method, data);
+            if (res.success) {
+                message.success(res.message);
+                fetchListCategory().catch(console.error);
+                CloseModalPopup();
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);  // ✅ always runs
+        }
+    };
 
     return (
         <div>
@@ -109,7 +144,7 @@ function CategoryPage() {
 
             {/* Modal */}
             <Modal style={{marginTop: 16}} title="Category Form" open={openModal} onCancel={() => CloseModalPopup()} footer={null}>
-                <Form form={formRef} layout="vertical" onFinish={OnFinish}>
+                <Form form={formRef} layout="vertical" onFinish={onFinish}>
                     <Form.Item label="Name" name="name"
                                rules={[{required: true, message: "Please enter name Category!"}]}>
                         <Input placeholder="Enter name Category"/>
@@ -139,7 +174,7 @@ function CategoryPage() {
                         <Space>
                             <Button type="primary" danger onClick={() => CloseModalPopup()}>Close</Button>
                             <Button type="primary" htmlType="submit">
-                                {editData ? "Update" : "Save"} {/* ✅ dynamic button label */}
+                                {editData?.id ? "Update" : "Save"} {/* ✅ dynamic button label */}
                             </Button>
                         </Space>
                     </div>

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { request } from "../util/request";
-import {Modal, Spin, Tag} from "antd";
+import {message, Modal, Spin, Tag} from "antd";
 import { Space, Table, Button, Form, Input, Select } from "antd"; // ✅ removed unused imports
 
 function RolePage() {
     const [list, setList] = useState([]);
     const [open, setOpen] = useState(false);
-    const [editData, setEditData] = useState(null); // ✅ track edit vs create
+    const [editData, setEditData] = useState({}); // ✅ track edit vs create
     const [formRef] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
@@ -71,6 +71,7 @@ function RolePage() {
             // ✅ EDIT — PUT
             const res = await request("roles/" + editData.id, "PUT", data);
             if (res.success) {
+                message.success(res.message);
                 handleCloseModal();
                 fetchRole().catch(console.error);
             } else {
@@ -140,7 +141,7 @@ function RolePage() {
                             <Space>
                                 <Button type="primary" danger onClick={handleCloseModal}>Cancel</Button>
                                 <Button type="primary" htmlType="submit">
-                                    {editData ? "Update" : "Save"} {/* ✅ dynamic button label */}
+                                    {editData?.id ? "Update" : "Save"} {/* ✅ dynamic button label */}
                                 </Button>
                             </Space>
                         </div>
