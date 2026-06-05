@@ -1,11 +1,13 @@
+import {Button, Form, Input, Modal, Select, Space, Spin, Table, Tag} from "antd";
 import { useEffect, useState } from "react";
 import { request } from "../util/request";
-import { Button, Input, Space, Spin, Table, Tag } from "antd";
 
 function CategoryPage() {
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
-
+    const [openModal, setOpenModal] = useState(false);
+    const [formRef] = Form.useForm();
+    const [editData, setEditData] = useState(null);
     const fetchListCategory = async () => {       // ✅ moved above useEffect
         setLoading(true);
         try {
@@ -20,30 +22,44 @@ function CategoryPage() {
         fetchListCategory().catch(console.error);
     }, []);
 
-    const handleBtnEdit = (record) => {
-        console.log(record);
+    const handleBtnEdit = () => {
+        console.log();
     };        // ✅ accepts record
-    const handleBtnDelete = (record) => {
-        console.log(record);
+
+    const handleBtnDelete = () => {
+        console.log();
     };      // ✅ accepts record
-    const handleAddNewCategory = (record) => {
-        console.log(record);
+
+    const handleAddNewCategory = () => {
+        console.log();
     };
+
+    const ShowModalPopup = () => {
+        setOpenModal(true);
+    }
+    const CloseModalPopup = () => {
+        setOpenModal(false);
+        formRef.resetFields();
+    }
+
+    const OnFinish = (value) => {
+        console.log(value);
+    }
 
     return (
         <div>
             <Spin spinning={loading}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div style={{display: "flex", justifyContent: "space-between"}}>
                     <Space>
                         <p>Category: {list.length}</p>
-                        <Input />
+                        <Input/>
                     </Space>
-                    <Button type="primary" onClick={() => handleAddNewCategory}>New Category</Button>
+                    <Button type="primary" onClick={() => ShowModalPopup()}>New Category</Button>
                 </div>
 
                 <Table
                     rowKey={record => record.id}
-                    style={{ marginTop: 20 }}
+                    style={{marginTop: 20}}
                     dataSource={list}
                     columns={[
                         {
@@ -82,7 +98,8 @@ function CategoryPage() {
                             render: (text, record) => (
                                 <Space>
                                     <Button type="primary" onClick={() => handleBtnEdit(record)}>Edit</Button>
-                                    <Button type="primary" danger onClick={() => handleBtnDelete(record)}>Delete</Button>
+                                    <Button type="primary" danger
+                                            onClick={() => handleBtnDelete(record)}>Delete</Button>
                                 </Space>
                             ),
                         },
@@ -91,6 +108,43 @@ function CategoryPage() {
             </Spin>
 
             {/* Modal */}
+            <Modal style={{marginTop: 16}} title="Category Form" open={openModal} onCancel={() => CloseModalPopup()} footer={null}>
+                <Form form={formRef} layout="vertical" onFinish={OnFinish}>
+                    <Form.Item label="Name" name="name"
+                               rules={[{required: true, message: "Please enter name Category!"}]}>
+                        <Input placeholder="Enter name Category"/>
+                    </Form.Item>
+                    <Form.Item label="Code" name="code"
+                               rules={[{required: true, message: "Please enter code Category!"}]}>
+                        <Input placeholder="Please enter your code Category"/>
+                    </Form.Item>
+                    <Form.Item label="Description" name="description"
+                               rules={[{required: true, message: "Please enter description!"}]}>
+                        <Input.TextArea rows={3} placeholder="Enter description"/>
+                    </Form.Item>
+                    <Form.Item
+                        name="status"
+                        label="Status"
+                        rules={[{required: true, message: "Please select status!"}]}
+                    >
+                        <Select
+                            placeholder="Select status"
+                            options={[
+                                {label: "Active", value: 1},
+                                {label: "Inactive", value: 0},
+                            ]}
+                        />
+                    </Form.Item>
+                    <div style={{textAlign: "right", marginTop: 20}}>
+                        <Space>
+                            <Button type="primary" danger onClick={() => CloseModalPopup()}>Close</Button>
+                            <Button type="primary" htmlType="submit">
+                                {editData ? "Update" : "Save"} {/* ✅ dynamic button label */}
+                            </Button>
+                        </Space>
+                    </div>
+                </Form>
+            </Modal>
         </div>
     );
 }
