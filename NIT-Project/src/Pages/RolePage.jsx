@@ -51,12 +51,22 @@ function RolePage() {
 
     // ✅ Delete role
     const handleDelete = async (record) => {
-        const res = await request("roles/" + record.id, "DELETE");
-        if (res.success) {
-            fetchRole().catch(console.error); // ✅ removed alert() — just refresh
-        } else {
-            alert(res.message || "Delete failed.");
-        }
+        Modal.confirm({
+            title: "Confirm Delete",
+            content: "Are you sure you want to delete this category?",
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    const res = await request(`roles/${record.id}`, "DELETE");
+                    if (res.success) {
+                        message.success("Roles deleted successfully.");
+                        fetchRole().catch(console.error);
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            }
+        })
     };
 
     // ✅ Single onFinish handles both POST (create) and PUT (update)
@@ -75,16 +85,17 @@ function RolePage() {
                 handleCloseModal();
                 fetchRole().catch(console.error);
             } else {
-                alert("Update failed.");
+                message.error("Update failed."); // ✅ replace alert("Update failed.")
             }
         } else {
             // ✅ CREATE — POST
             const res = await request("roles", "POST", data);
             if (res.success) {
+                message.success(res.message);
                 handleCloseModal();
                 fetchRole().catch(console.error);
             } else {
-                alert("Create failed.");
+                message.error("Create failed."); // ✅ also replace alert() with message.error()
             }
         }
     };

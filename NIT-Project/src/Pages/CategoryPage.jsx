@@ -36,14 +36,6 @@ function CategoryPage() {
         setOpenModal(true);
     };        // ✅ accepts record
 
-    const handleBtnDelete = () => {
-        console.log();
-    };      // ✅ accepts record
-
-    const handleAddNewCategory = () => {
-        console.log();
-    };
-
     const ShowModalPopup = () => {
         setOpenModal(true);
     };
@@ -73,12 +65,33 @@ function CategoryPage() {
                 message.success(res.message);
                 fetchListCategory().catch(console.error);
                 CloseModalPopup();
+            } else {
+                message.error("Update failed."); // ✅ replace alert("Update failed.")
             }
         } catch (error) {
             console.error(error);
         } finally {
             setLoading(false);  // ✅ always runs
         }
+    };
+
+    const handleBtnDelete = (record) => {
+        Modal.confirm({
+            title: "Confirm Delete",
+            content: "Are you sure you want to delete this category?",
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    const res = await request(`categories/${record.id}`, "DELETE");
+                    if (res.success) {
+                        message.success("Category deleted successfully.");
+                        fetchListCategory().catch(console.error);
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            }
+        });
     };
 
     return (
@@ -133,8 +146,7 @@ function CategoryPage() {
                             render: (text, record) => (
                                 <Space>
                                     <Button type="primary" onClick={() => handleBtnEdit(record)}>Edit</Button>
-                                    <Button type="primary" danger
-                                            onClick={() => handleBtnDelete(record)}>Delete</Button>
+                                    <Button type="primary" danger onClick={() => handleBtnDelete(record)}>Delete</Button>
                                 </Space>
                             ),
                         },
