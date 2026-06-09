@@ -1,19 +1,197 @@
-import { useState } from "react";
-import {Button, Input, Space} from "antd";
+import {Button, Form, Input, Modal, Select, Space, Spin, Table, Tag, message} from "antd";
+import { useEffect, useState } from "react";
+import { request } from "../util/request";
 
 function BrandPage() {
-    const [test, setTest] = useState("")
-    return(
-        <div className="container">
-            <div style={{display:"flex",justifyContent:"space-between"}}>
-                <Space>
-                    <h3>BrandPage</h3>
-                    <Input onChange={e => setTest(e.target.value)} value={test} />
-                </Space>
-                <Button type="primary" onClick={() => setTest("test")}>Test</Button>
-            </div>
-        </div>
+    const [list, setList] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
+    const [formRef] = Form.useForm();
+    const [editData, setEditData] = useState(null);
 
+    const fetchListBrands = async () => {       // ✅ moved above useEffect
+        setLoading(true);
+        try {
+            const res = await request("brands", "GET");
+            if (res.list) setList(res.list);
+        } finally {
+            setLoading(false);                    // ✅ always runs
+        }
+    };
+
+    useEffect(() => {
+        fetchListBrands().catch(console.error);
+    }, []);
+
+    const handleBtnEdit = (record) => {
+        setEditData(record);
+        formRef.setFieldsValue({
+            id: record.id,
+            name: record.name,
+            code: record.code,
+            description: record.description,
+            status: record.status,
+        });
+        setOpenModal(true);
+    };        // ✅ accepts record
+
+    const showModalPopup = () => {
+        setOpenModal(true);
+    };
+
+    const closeModalPopup  = () => {
+        setOpenModal(false);
+        setEditData({});
+        formRef.resetFields();
+    };
+
+    const onFinish = async (values) => {
+        const data = {
+            id: editData?.id,          // ✅ from state, not form
+            name: values.name,
+            code: values.code,
+            description: values.description,
+            status: values.status,
+        };
+
+        const method = editData?.id ? "PUT" : "POST";
+        const url = editData?.id ? `brands/${editData.id}` : "brands";
+
+        setLoading(true);
+        try {
+            const res = await request(url, method, data);
+            if (res.success) {
+                message.success(res.message);
+                fetchListBrands().catch(console.error);
+                closeModalPopup();
+            } else {
+                message.error("Update failed."); // ✅ replace alert("Update failed.")
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);  // ✅ always runs
+        }
+    };
+
+    const handleBtnDelete = (record) => {
+        Modal.confirm({
+            title: "Confirm Delete",
+            content: "Are you sure you want to delete this Brand?",
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    const res = await request(`brands/${record.id}`, "DELETE");
+                    if (res.success) {
+                        message.success("Brand deleted successfully.");
+                        fetchListBrands().catch(console.error);
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            }
+        });
+    };
+
+    return (
+        <div>
+            <Spin spinning={loading}>
+                <div style={{display: "flex", justifyContent: "space-between"}}>
+                    <Space>
+                        <p>Brand: {list.length}</p>
+                        <Input/>
+                    </Space>
+                    <Button type="primary" onClick={showModalPopup}>New Brand</Button>
+                </div>
+
+                <Table
+                    rowKey={record => record.id}
+                    style={{marginTop: 20}}
+                    dataSource={list}
+                    columns={[
+                        {
+                            title: "No",
+                            render: (text, record, index) => index + 1,
+                        },
+                        {
+                            title: "Name",
+                            dataIndex: "name",
+                            key: "name",
+                        },
+                        {
+                            title: "Code",
+                            dataIndex: "code",
+                            key: "code",
+                        },
+                        {
+                            title: "Description",
+                            dataIndex: "description",
+                            key: "description",
+                        },
+                        {
+                            title: "Status",
+                            dataIndex: "status",
+                            key: "status",
+                            render: (text) => (
+                                text === 1
+                                    ? <Tag color="green">Active</Tag>
+                                    : <Tag color="red">Inactive</Tag>
+                            ),
+                        },
+                        {
+                            title: "Actions",
+                            key: "actions",
+                            align: "center",
+                            render: (text, record) => (
+                                <Space>
+                                    <Button type="primary" onClick={() => handleBtnEdit(record)}>Edit</Button>
+                                    <Button type="primary" danger onClick={() => handleBtnDelete(record)}>Delete</Button>
+                                </Space>
+                            ),
+                        },
+                    ]}
+                />
+            </Spin>
+
+            {/* Modal */}
+            <Modal style={{marginTop: 16}} title="Brand Form" open={openModal} onCancel={closeModalPopup} footer={null}>
+                <Form form={formRef} layout="vertical" onFinish={onFinish}>
+                    <Form.Item label="Name" name="name"
+                               rules={[{required: true, message: "Please enter name Brand!"}]}>
+                        <Input placeholder="Enter name Brand"/>
+                    </Form.Item>
+                    <Form.Item label="Code" name="code"
+                               rules={[{required: true, message: "Please enter code Brand!"}]}>
+                        <Input placeholder="Please enter your code Brand"/>
+                    </Form.Item>
+                    <Form.Item label="Description" name="description"
+                               rules={[{required: true, message: "Please enter description!"}]}>
+                        <Input.TextArea rows={3} placeholder="Enter description"/>
+                    </Form.Item>
+                    <Form.Item
+                        name="status"
+                        label="Status"
+                        rules={[{required: true, message: "Please select status!"}]}
+                    >
+                        <Select
+                            placeholder="Select status"
+                            options={[
+                                {label: "Active", value: 1},
+                                {label: "Inactive", value: 0},
+                            ]}
+                        />
+                    </Form.Item>
+                    <div style={{textAlign: "right", marginTop: 20}}>
+                        <Space>
+                            <Button type="primary" danger onClick={closeModalPopup}>Close</Button>
+                            <Button type="primary" htmlType="submit">
+                                {editData?.id ? "Update" : "Save"} {/* ✅ dynamic button label */}
+                            </Button>
+                        </Space>
+                    </div>
+                </Form>
+            </Modal>
+        </div>
     );
 }
 

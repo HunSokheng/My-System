@@ -7,8 +7,7 @@ function CategoryPage() {
     const [loading, setLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
     const [formRef] = Form.useForm();
-    const [editData, setEditData] = useState({});
-
+    const [editData, setEditData] = useState(null);
 
     const fetchListCategory = async () => {       // ✅ moved above useEffect
         setLoading(true);
@@ -36,11 +35,11 @@ function CategoryPage() {
         setOpenModal(true);
     };        // ✅ accepts record
 
-    const ShowModalPopup = () => {
+    const showModalPopup = () => {
         setOpenModal(true);
     };
 
-    const CloseModalPopup = () => {
+    const closeModalPopup = () => {
         setOpenModal(false);
         setEditData({});
         formRef.resetFields();
@@ -64,7 +63,7 @@ function CategoryPage() {
             if (res.success) {
                 message.success(res.message);
                 fetchListCategory().catch(console.error);
-                CloseModalPopup();
+                closeModalPopup();
             } else {
                 message.error("Update failed."); // ✅ replace alert("Update failed.")
             }
@@ -102,7 +101,7 @@ function CategoryPage() {
                         <p>Category: {list.length}</p>
                         <Input/>
                     </Space>
-                    <Button type="primary" onClick={() => ShowModalPopup()}>New Category</Button>
+                    <Button type="primary" onClick={showModalPopup}>New Category</Button>
                 </div>
 
                 <Table
@@ -155,7 +154,7 @@ function CategoryPage() {
             </Spin>
 
             {/* Modal */}
-            <Modal style={{marginTop: 16}} title="Category Form" open={openModal} onCancel={() => CloseModalPopup()} footer={null}>
+            <Modal style={{marginTop: 16}} title="Category Form" open={openModal} onCancel={closeModalPopup} footer={null}>
                 <Form form={formRef} layout="vertical" onFinish={onFinish}>
                     <Form.Item label="Name" name="name"
                                rules={[{required: true, message: "Please enter name Category!"}]}>
@@ -184,7 +183,7 @@ function CategoryPage() {
                     </Form.Item>
                     <div style={{textAlign: "right", marginTop: 20}}>
                         <Space>
-                            <Button type="primary" danger onClick={() => CloseModalPopup()}>Close</Button>
+                            <Button type="primary" danger onClick={closeModalPopup}>Close</Button>
                             <Button type="primary" htmlType="submit">
                                 {editData?.id ? "Update" : "Save"} {/* ✅ dynamic button label */}
                             </Button>
