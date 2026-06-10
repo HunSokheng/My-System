@@ -10,7 +10,6 @@ import RolePage from "./Pages/RolePage";
 import './App.css';
 
 function App() {
-
   return (
     <BrowserRouter>
       <Routes>
