@@ -50,7 +50,7 @@ class RoleController extends Controller
         return response()->json([
             "success" => true,
             "role"    => $role,
-            "message" => "Role found successfully.",
+            "message" => "Role retrieved successfully.",
         ]);
     }
 
