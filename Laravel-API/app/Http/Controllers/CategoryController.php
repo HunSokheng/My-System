@@ -50,7 +50,7 @@ class CategoryController extends Controller
         return response()->json([
             "success"  => true,
             "category" => $category,
-            "message"  => "Category found successfully.",
+            "message"  => "Category retrieved successfully.",
         ]);
     }
 
